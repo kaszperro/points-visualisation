@@ -1,0 +1,7 @@
+*.csv
+*.png
+venv/
+.idea/
+.DS_Store
+**__pycache__/
+*.txt
