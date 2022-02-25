@@ -14,7 +14,7 @@ def _read_data(path):
 # x[1, ...] = Uniform
 def parse_data(file_path, special_names_first=None):
     if special_names_first is None:
-        special_names_first = ['Identity', 'Uniformity']
+        special_names_first = []
 
     data = _read_data(file_path)
     all_points_names = set(data['election_id_1'].tolist()) | set(data['election_id_2'].tolist())
@@ -93,16 +93,27 @@ class Positions:
 
 class VisualizationAlgorithm(ABC):
     def __init__(self, file_path, fixed_positions_path=None):
-        if fixed_positions_path is not None:
-            self.fixed_positions_indexes, self.fixed_positions = self._read_fixed_positions(fixed_positions_path)
+        self.file_path = file_path
+        self.fixed_positions_path = fixed_positions_path
+
+        self.reload()
+
+    def reload(self):
+        if self.fixed_positions_path is not None:
+            self.fixed_positions_indexes, self.fixed_positions = self._read_fixed_positions(self.fixed_positions_path)
         else:
             self.fixed_positions_indexes, self.fixed_positions = None, None
 
         self.distances, self.num_elections, self.names_to_indexes = parse_data(
-            file_path,
+            self.file_path,
             self.fixed_positions_indexes
         )
-        self.file_name = Path(file_path).stem
+        self.file_name = Path(self.file_path).stem
+
+        self._reload()
+
+    def _reload(self):
+        raise NotImplementedError
 
     def _read_fixed_positions(self, path):
         df = pd.read_csv(path)
@@ -132,10 +143,6 @@ class VisualizationAlgorithm(ABC):
         self._apply_fixed_positions(positions)
 
         return positions
-
-    @staticmethod
-    def _get_special_groups_names():
-        return ['Identity', 'Uniformity']
 
     def _get_positions(self, distances, num_elections):
         raise NotImplementedError()

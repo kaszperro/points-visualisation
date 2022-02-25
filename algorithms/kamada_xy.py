@@ -3,12 +3,11 @@ from pathlib import Path
 
 import numpy as np
 
-from algorithms.common import VisualizationAlgorithm, circle_points, _calc_k_with_special_value
+from algorithms.common import VisualizationAlgorithm, _calc_k_with_special_value
 from algorithms.kamadaY import _optimize_bb
 from algorithms.kk_energy import get_energy_dx, get_energy_dy, get_energy_dx_dx, get_energy_dx_dy, get_energy_dy_dx, \
     get_energy_dy_dy, get_total_energy, get_total_energy_dxy
 from algorithms.sgd_for_scipy import adam, rmsprop
-from algorithms.simulated_ann import SimRunner
 
 
 def _get_pos_k_l_x_y_for_i(positions, k, l, i):
@@ -56,19 +55,25 @@ def _optimize_newton(positions, k, l, i, eps=1e-10):
 class KamadaXY(VisualizationAlgorithm):
     def __init__(self, file_path, special_k=10000, fixed_positions_path=None, epsilon=0.00001,
                  max_neighbour_distance=None, optim_method='bb'):
+        self.special_k = special_k
+        self.epsilon = epsilon
+        self.max_neighbour_distance = max_neighbour_distance
+        self.optim_method = optim_method
+
         super().__init__(file_path, fixed_positions_path)
 
+    def _reload(self):
         if self.fixed_positions_indexes is not None:
             self.special_indexes = list(range(len(self.fixed_positions_indexes)))
         else:
             self.special_indexes = None
 
-        self.k = _calc_k_with_special_value(self.distances, special_k, self.special_indexes)
+        self.k = _calc_k_with_special_value(self.distances, self.special_k, self.special_indexes)
         self.l = self.distances
-        self.epsilon = epsilon
+        self.epsilon = self.epsilon
 
-        self.optim_method = optim_method
-        self.max_neighbour_distance = max_neighbour_distance
+        self.optim_method = self.optim_method
+        self.max_neighbour_distance = self.max_neighbour_distance
 
     def _respect_only_close_neighbours(self, max_distance):
         for i in range(self.num_elections):
@@ -187,15 +192,6 @@ class KamadaXY(VisualizationAlgorithm):
             print("Last adjustments:", get_total_energy(pos, self.k, self.l), "TIME:", time.time() - start_time)
 
         return pos
-        # pos_kk = self._get_positions_kk(distances, num_elections)
-        # pos_bb = self._get_positions_bb(distances, num_elections)
-        # pos_adam = self._get_positions_adam(distances, num_elections)
-        # pos_rmsprop = self._get_positions_rmsprop(distances, num_elections)
-
-    @staticmethod
-    def _get_special_groups_names():
-        # return ['ID', 'UN', 'AN', 'ST']
-        return ['Identity', 'Uniformity', 'Antagonism', 'Stratification']
 
     def _get_save_file_name(self):
         return Path('kamada_xy', f'{self.file_name}-{self.optim_method}.csv')
