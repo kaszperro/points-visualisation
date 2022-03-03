@@ -2,10 +2,16 @@ from pathlib import Path
 import math
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
 import matplotlib.cm as cm
 from matplotlib.colors import ListedColormap
 from matplotlib.cm import hsv
 import pandas as pd
+
+import matplotlib.colors as colors
+import matplotlib.cbook as cbook
+from matplotlib import cm
+
 
 
 def _generate_colormap(number_of_distinct_colors: int = 80):
@@ -129,4 +135,25 @@ def plot_using_map(file_path, map_path):
     save_name = f"{Path(file_path).stem}.png"
     plt.tight_layout()
     plt.savefig(Path(save_root, save_name), dpi=300)
+    plt.show()
+
+
+def plot_using_importance_matrix(file_path, name_to_importance):
+    df = pd.read_csv(file_path)
+
+    xs = df['x']
+    ys = df['y']
+    zs = []
+
+    for i, row in df.iterrows():
+        zs.append(name_to_importance[row['names']])
+
+    fig, ax = plt.subplots(figsize=(10, 6))
+    pcm = ax.scatter(xs, ys, c=zs,  vmin=np.min(zs), vmax=np.max(zs),
+                       cmap='jet')
+    # pcm = ax.pcolor(xs, ys, zs,
+    #                    norm=colors.LogNorm(vmin=np.min(zs), vmax=np.max(zs)),
+    #                    cmap='PuBu_r', shading='auto')
+    fig.colorbar(pcm, ax=ax)
+
     plt.show()

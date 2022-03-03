@@ -130,8 +130,8 @@ class VisualizationAlgorithm(ABC):
                 return val
 
     def _initial_place_on_circle(self):
-        identity_index = self._get_point_index(['ID', 'Identity'])
-        uniformity_index = self._get_point_index(['UN', 'Uniformity'])
+        identity_index = self._get_point_index(['Sym', 'Identity'])
+        uniformity_index = self._get_point_index(['Asym', 'Uniformity'])
 
         identity_uniformity_distance = self.distances[identity_index, uniformity_index]
 

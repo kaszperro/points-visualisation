@@ -106,21 +106,16 @@ def main_kamada_y():
 
 def main_kamada_xy():
     kamada_xy = KamadaXY(
-        'data/positionwise/emd-positionwise-paths-big.csv',
-        fixed_positions_path='saved_results/emd-positionwise/fixed_positions/emd-positionwise-paths-big-ID-UN-AN-ST-bb.csv',
+        'data/SOME_TEST/l1-retrospective.csv',
+        fixed_positions_path='data/SOME_TEST/fixed.csv',
         optim_method='bb',
         # max_neighbour_distance=100
     )
 
-    # kamada_xy = KamadaXY(
-    #     'data/positionwise/emd-positionwise-paths-big-ID-UN-AN-ST.csv',
-    #     # fixed_positions_path='saved_results/emd-positionwise/fixed_positions/emd-positionwise-paths-big-ID-UN-AN-ST-bb.csv',
-    #     optim_method='bb'
-    # )
     positions = kamada_xy.get_positions()
-    saved_path = positions.save(root_path='saved_results/emd-positionwise/my_test')
+    saved_path = positions.save(root_path='saved_results/SOME_TEST/')
 
-    plot_using_map(saved_path, 'map.csv')
+    plot_using_map(saved_path, 'data/SOME_TEST/map.csv')
 
 
 def main_sim_ann():
@@ -141,7 +136,7 @@ def main_evaluate():
     file_path = 'data/positionwise/emd-positionwise-paths-big.csv'
     kamada_xy = KamadaXY(
         'data/positionwise/emd-positionwise-paths-big.csv',
-        fixed_positions_path='saved_results/emd-positionwise/fixed_positions/emd-positionwise-paths-big-ID-UN-AN-ST-bb.csv',
+        fixed_positions_path='saved_results/emd-positionwise/fixed_positions/emd-positionwise-paths-big-only-paths-bb.csv',
         optim_method='bb',
         max_neighbour_distance=100
     )
@@ -170,8 +165,9 @@ if __name__ == "__main__":
     #     },
     #     percent=1.0
     # )
-    main_evaluate()
+    # main_kamada_xy()
     # plot_from_file('saved_results/bordawise/kamada_y/mallows-unid-stun-stan-stid-3dsphere-3dcube-kk-bb-top-close.csv')
     # b = Bordawise('small.csv')
     # b.save('saved_small')
     # b.plot()
+    plot_using_map('saved_results/emd-positionwise/kamada_xy/emd-positionwise-1000-bb-2steps.csv', 'map.csv')

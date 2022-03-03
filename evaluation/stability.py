@@ -111,4 +111,4 @@ class StabilityEvaluation(EvaluationAlgorithm):
 # StabilityEvaluation.calculate_from_saved_path('saved/stability/results/emd-positionwise-paths-big')
 
 
-plot_using_map('saved/stability/results/emd-positionwise-paths-big-fixed-4-3runs/emd-positionwise-paths-big_7.csv', '../map.csv')
+# plot_using_map('saved/stability/results/emd-positionwise-paths-big-fixed-paths-3runs/emd-positionwise-paths-big_9.csv', '../map.csv')
