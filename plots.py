@@ -94,7 +94,7 @@ def plot_from_file(file_path):
             color_i = 0
             marker_i += 1
 
-    fig, ax = plt.subplots(figsize=(10, 6))
+    fig, ax = plt.subplots(figsize=(10, 10))
 
     for p_type in point_types:
         style = point_types_styles[p_type]
@@ -111,13 +111,19 @@ def plot_from_file(file_path):
     save_root = Path(file_path).parent
     save_name = f"{Path(file_path).stem}.png"
     plt.tight_layout()
+    ax.set_aspect('equal')
     plt.savefig(Path(save_root, save_name), dpi=300)
     plt.show()
 
 
-def plot_using_map(file_path, map_path):
+def plot_using_map(file_path, map_path, show=True):
+    def _get_point_type(name):
+        if '_' in name:
+            return name[:name.rfind("_")]
+        return name
+
     df = pd.read_csv(file_path)
-    df['point_type'] = df['names'].map(lambda x: x.split('_')[0])
+    df['point_type'] = df['names'].map(lambda x: _get_point_type(x))
     point_types = set(df['point_type'].tolist())
 
     map_df = pd.read_csv(map_path, sep=';')
@@ -126,19 +132,20 @@ def plot_using_map(file_path, map_path):
     for p_type in point_types:
         print(p_type)
         series = map_df[map_df['family_id'] == p_type].iloc[0]
-        print(series)
         points = df[df['point_type'] == p_type]
         ax.scatter(points['x'], points['y'], label=series['label'], color=series['color'], marker=series['marker'], alpha=series['alpha'])
 
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     save_root = Path(file_path).parent
     save_name = f"{Path(file_path).stem}.png"
+    ax.set_aspect('equal')
     plt.tight_layout()
     plt.savefig(Path(save_root, save_name), dpi=300)
-    plt.show()
+    if show:
+        plt.show()
 
 
-def plot_using_importance_matrix(file_path, name_to_importance):
+def plot_using_importance_matrix(file_path, name_to_importance, save_path=None, show=True):
     df = pd.read_csv(file_path)
 
     xs = df['x']
@@ -155,5 +162,9 @@ def plot_using_importance_matrix(file_path, name_to_importance):
     #                    norm=colors.LogNorm(vmin=np.min(zs), vmax=np.max(zs)),
     #                    cmap='PuBu_r', shading='auto')
     fig.colorbar(pcm, ax=ax)
-
-    plt.show()
+    ax.set_aspect('equal')
+    if show:
+        plt.show()
+    if save_path is not None:
+        plt.tight_layout()
+        plt.savefig(save_path, dpi=300)

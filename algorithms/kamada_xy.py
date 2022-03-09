@@ -53,22 +53,17 @@ def _optimize_newton(positions, k, l, i, eps=1e-10):
 
 
 class KamadaXY(VisualizationAlgorithm):
-    def __init__(self, file_path, special_k=10000, fixed_positions_path=None, epsilon=0.00001,
+    def __init__(self, file_path, special_k=10000, initial_positions_path=None, fix_positions=False, epsilon=0.00001,
                  max_neighbour_distance=None, optim_method='bb'):
         self.special_k = special_k
         self.epsilon = epsilon
         self.max_neighbour_distance = max_neighbour_distance
         self.optim_method = optim_method
 
-        super().__init__(file_path, fixed_positions_path)
+        super().__init__(file_path, initial_positions_path, fix_positions)
 
     def _reload(self):
-        if self.fixed_positions_indexes is not None:
-            self.special_indexes = list(range(len(self.fixed_positions_indexes)))
-        else:
-            self.special_indexes = None
-
-        self.k = _calc_k_with_special_value(self.distances, self.special_k, self.special_indexes)
+        self.k = _calc_k_with_special_value(self.distances, self.special_k, self.fixed_positions_indexes)
         self.l = self.distances
         self.epsilon = self.epsilon
 
@@ -85,17 +80,11 @@ class KamadaXY(VisualizationAlgorithm):
         if positions is None:
             positions = self._initial_place_on_circle()
 
-            # positions[self.names_to_indexes['Identity']] = [15, 0]
-            # positions[self.names_to_indexes['Uniformity']] = [-15, 0]
-            # positions[self.names_to_indexes['Antagonism']] = [0, 15]
-            # positions[self.names_to_indexes['Stratification']] = [0, -15]
-
         pos_copy = np.copy(positions)
-
         new_positions = _optimize_bb(
             get_total_energy,
             get_total_energy_dxy,
-            args=(self.k, self.l, self.special_indexes),
+            args=(self.k, self.l, self.fixed_positions_indexes),
             x0=pos_copy,
             max_iter=int(1e5),
             init_step_size=1e-3,
@@ -123,7 +112,7 @@ class KamadaXY(VisualizationAlgorithm):
         if positions is None:
             positions = self._initial_place_on_circle()
 
-        max_derivative = self._get_max_derivative(positions, self.special_indexes)
+        max_derivative = self._get_max_derivative(positions, self.fixed_positions_indexes)
         print(max_derivative)
         prev_i = 0
         while max_derivative[0] > self.epsilon:
@@ -147,7 +136,7 @@ class KamadaXY(VisualizationAlgorithm):
             get_total_energy,
             get_total_energy_dxy,
             x0=pos_copy,
-            args=(self.k, self.l, self.special_indexes),
+            args=(self.k, self.l, self.fixed_positions_indexes),
             learning_rate=1.0,
             maxiter=4000
         )
@@ -162,7 +151,7 @@ class KamadaXY(VisualizationAlgorithm):
             get_total_energy,
             get_total_energy_dxy,
             x0=pos_copy,
-            args=(self.k, self.l, self.special_indexes),
+            args=(self.k, self.l, self.fixed_positions_indexes),
             learning_rate=0.1,
             maxiter=10000
         )
@@ -178,7 +167,7 @@ class KamadaXY(VisualizationAlgorithm):
         start_time = time.time()
         pos = optim_method_to_fun[self.optim_method](distances, num_elections)
 
-        self.k = _calc_k_with_special_value(self.distances, 1, self.special_indexes)
+        self.k = _calc_k_with_special_value(self.distances, 1, self.fixed_positions_indexes)
         print("MIDDLE ENERGY:", get_total_energy(pos, self.k, self.l), "TIME:", time.time() - start_time)
 
         pos = optim_method_to_fun[self.optim_method](distances, num_elections, positions=pos)

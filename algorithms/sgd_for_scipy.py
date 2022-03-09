@@ -58,7 +58,7 @@ def rmsprop(
         print(fun(x, *args), i)
         if i > 800:
             learning_rate = 0.01
-        g = jac(x,  *args)
+        g = jac(x, *args)
 
         if callback and callback(x):
             break
@@ -92,13 +92,10 @@ def adam(
     v = np.zeros_like(x)
     best_energy = fun(x, *args), x
     for i in range(startiter, startiter + maxiter):
-        energy =fun(x, *args)
-        print(energy)
+        energy = fun(x, *args)
         if energy < best_energy[0]:
             best_energy = energy, np.copy(x)
 
-        if energy < 4459.1:
-            return best_energy[1]
         g = jac(x, *args)
 
         if callback and callback(x):
@@ -112,10 +109,5 @@ def adam(
 
         if i == (startiter + maxiter) // 2:
             learning_rate /= 2
-
-
-
-
-
 
     return best_energy[1]

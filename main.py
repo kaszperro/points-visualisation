@@ -106,16 +106,17 @@ def main_kamada_y():
 
 def main_kamada_xy():
     kamada_xy = KamadaXY(
-        'data/SOME_TEST/l1-retrospective.csv',
-        fixed_positions_path='data/SOME_TEST/fixed.csv',
+        'data/truncated_urn/distances/l1-approvalwise.csv',
+        initial_positions_path='data/resampling/coordinates/kamada_xy/l1-approvalwise-full-ic-id-empty-bb-fixed.csv',
         optim_method='bb',
+        fix_positions=True
         # max_neighbour_distance=100
     )
 
     positions = kamada_xy.get_positions()
-    saved_path = positions.save(root_path='saved_results/SOME_TEST/')
+    saved_path = positions.save(root_path='data/truncated_urn/coordinates/')
 
-    plot_using_map(saved_path, 'data/SOME_TEST/map.csv')
+    plot_using_map(saved_path, 'data/truncated_urn/map.csv')
 
 
 def main_sim_ann():
@@ -133,41 +134,55 @@ def main_sim_ann():
 
 
 def main_evaluate():
-    file_path = 'data/positionwise/emd-positionwise-paths-big.csv'
+    file_path = 'data/positionwise/emd-positionwise-paths-big-ID-UN-AN-ST.csv'
     kamada_xy = KamadaXY(
-        'data/positionwise/emd-positionwise-paths-big.csv',
-        fixed_positions_path='saved_results/emd-positionwise/fixed_positions/emd-positionwise-paths-big-only-paths-bb.csv',
+        file_path,
+        # initial_positions_path='saved_results/emd-positionwise/fixed_positions/emd-positionwise-paths-big-only-paths-bb.csv',
         optim_method='bb',
-        max_neighbour_distance=100
+        epsilon=1e-20
+        # max_neighbour_distance=100
     )
+    positions = kamada_xy.get_positions()
+    saved_path = positions.save(root_path='saved_results/emd-positionwise/temp')
+    plot_from_file(saved_path)
+    # evaluation = StabilityEvaluation(file_path)
+    # evaluation.preprocess(kamada_xy)
 
+
+def main_evaluate_sim():
+    file_path = 'data/positionwise/emd-positionwise-paths-big.csv'
+    sim = SimulatedAnnealing(
+        file_path,
+        initial_positions_path='saved_results/emd-positionwise/fixed_positions/emd-positionwise-paths-big-only-paths-bb.csv',
+        temperature=100000,
+        num_stages=15,
+        number_of_trials_for_temp=40,
+        cooling_radius_factor=0.6,
+        cooling_temp_factor=0.6
+    )
     evaluation = StabilityEvaluation(file_path)
-    evaluation.preprocess(kamada_xy)
-
+    evaluation.preprocess(sim)
 
 if __name__ == "__main__":
+    # main_kamada_xy()
     # main_networkx()
+    # plot_using_map('./saved_results/SOME_TEST/kamada_xy/emd-positionwise-paths-big-bb.csv', './map.csv')
     # generate_random_points(8000, 20)
     # make_smaller_sample(
-    #     'data/positionwise/emd-positionwise-1000.csv',
-    #     'data/positionwise/emd-positionwise-1000-ID-UN-AN-ST.csv',
+    #     'data/resampling/distances/l1-approvalwise.csv',
+    #     'data/resampling/distances/l1-approvalwise-full-ic-id-empty.csv',
     #     only_selected_group={
-    #         'Identity',
-    #         'Uniformity',
-    #         'Antagonism',
-    #         'Stratification',
-    #         # 'ANUN',
-    #         # 'ANID',
-    #         # 'STUN',
-    #         # 'STID',
-    #         # 'UNID',
-    #         # 'STAN'
+    #         'full',
+    #         'IC 0.5',
+    #         'empty',
+    #         'ID 0.5',
     #     },
     #     percent=1.0
     # )
-    # main_kamada_xy()
+    main_kamada_xy()
+    # plot_using_map('data/resampling/coordinates/kamada_xy/l1-approvalwise-bb.csv', 'data/resampling/map.csv')
     # plot_from_file('saved_results/bordawise/kamada_y/mallows-unid-stun-stan-stid-3dsphere-3dcube-kk-bb-top-close.csv')
     # b = Bordawise('small.csv')
     # b.save('saved_small')
     # b.plot()
-    plot_using_map('saved_results/emd-positionwise/kamada_xy/emd-positionwise-1000-bb-2steps.csv', 'map.csv')
+    # plot_using_map('saved_results/emd-positionwise/kamada_xy/emd-positionwise-1000-bb-2steps.csv', 'map.csv')

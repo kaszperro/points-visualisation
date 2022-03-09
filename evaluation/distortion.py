@@ -5,7 +5,7 @@ import pandas as pd
 
 from algorithms.common import VisualizationAlgorithm, parse_data
 from evaluation.utils import EvaluationAlgorithm
-from plots import plot_using_importance_matrix
+from plots import plot_using_importance_matrix, plot_using_map
 
 
 def _close_zero(number, e=1e-6):
@@ -29,9 +29,7 @@ class Distortion(EvaluationAlgorithm):
 
         return self.save_results_root
 
-    def calculate_from_saved_path(self, root_path):
-        root_path = Path(root_path)
-        csv_path = list(root_path.glob('*.csv'))[0]
+    def calculate_from_saved_path(self, csv_path):
         df = pd.read_csv(csv_path)
 
         indexes_to_names = {
@@ -87,14 +85,57 @@ class Distortion(EvaluationAlgorithm):
         return point_name_to_distortion
 
 
-point_name_to_d = Distortion('../data/positionwise/emd-positionwise-paths-big.csv', 0.1).calculate_from_saved_path(
-    'saved/stability/results/emd-positionwise-paths-big-fixed-paths-3runs')
+# point_name_to_d = Distortion('../data/positionwise/emd-positionwise-paths-big.csv', 0.1).calculate_from_saved_path(
+#     'saved/kamda_bb/stability/results/emd-positionwise-paths-big-fixed-paths-3runs')
+#
+# plot_using_importance_matrix(
+#     'saved/kamda_bb/stability/results/emd-positionwise-paths-big-fixed-paths-3runs/emd-positionwise-paths-big_0.csv', point_name_to_d)
 
-plot_using_importance_matrix('saved/stability/results/emd-positionwise-paths-big-fixed-paths-3runs/emd-positionwise-paths-big_0.csv', point_name_to_d)
+
+for i in range(1):
+    csv_path = Path(f'../saved_results/SOME_TEST/kamada_xy/emd-positionwise-paths-big-bb.csv')
+    print(csv_path.stem)
+    point_name_to_m = Distortion('../data/positionwise/emd-positionwise-paths-big.csv').calculate_from_saved_path(
+        csv_path)
+
+    plot_using_importance_matrix(csv_path, point_name_to_m, show=False, save_path=Path(csv_path.parent, f'{csv_path.stem}_dist.png'))
+    plot_using_map(csv_path, '../map.csv', False)
 
 
 #MEAN DIST (10%):
+# KAMADA KAWAI:
 #emd-positionwise-paths-big_0-fixed-4-2runs.csv : 1.0498735726898416
 #emd-positionwise-paths-big-fixed-4-3runs/emd-positionwise-paths-big_0.csv :  1.054683614829009
 #emd-positionwise-paths-big-fixed-paths-2runs/emd-positionwise-paths-big_0: 1.0523417299172935
 #emd-positionwise-paths-big-fixed-paths-3runs/emd-positionwise-paths-big_0: 1.0525321459154457
+# SIM-ANNEAL:
+# emd-positionwise-paths-big_0-fixed-4/emd-positionwise-paths-big_0: 1.240033563466185
+
+
+
+# ONLY 4 POINTS:
+# KAMADA-KAWAI:
+# emd-positionwise-paths-big-ID-UN-AN-ST_0: 1.1124199634308398
+# emd-positionwise-paths-big-ID-UN-AN-ST_1: 1.1124199633445295
+# emd-positionwise-paths-big-ID-UN-AN-ST_2: 1.4497158678654567
+# emd-positionwise-paths-big-ID-UN-AN-ST_3: 1.0033169247768923
+# emd-positionwise-paths-big-ID-UN-AN-ST_4: 1.4497158678654567
+# emd-positionwise-paths-big-ID-UN-AN-ST_5: 1.0033169247767093
+# emd-positionwise-paths-big-ID-UN-AN-ST_6: 1.0033169247768923
+# emd-positionwise-paths-big-ID-UN-AN-ST_7: 1.1124199633446914
+# emd-positionwise-paths-big-ID-UN-AN-ST_8: 1.4497158678649327
+# emd-positionwise-paths-big-ID-UN-AN-ST_9: 1.0033169247768923
+
+
+#SIM-ANNEAL:
+
+# emd-positionwise-paths-big-ID-UN-AN-ST_0: 1.0042275847243423
+# emd-positionwise-paths-big-ID-UN-AN-ST_1: 1.0040229696124507
+# emd-positionwise-paths-big-ID-UN-AN-ST_2: 1.0035342431385024
+# emd-positionwise-paths-big-ID-UN-AN-ST_3: 1.0043248909762537
+# emd-positionwise-paths-big-ID-UN-AN-ST_4: 1.004129188840956
+# emd-positionwise-paths-big-ID-UN-AN-ST_5: 1.0043893743722525
+# emd-positionwise-paths-big-ID-UN-AN-ST_6: 1.003733727225542
+# emd-positionwise-paths-big-ID-UN-AN-ST_7: 1.0038813442043888
+# emd-positionwise-paths-big-ID-UN-AN-ST_8: 1.0039187073184674
+# emd-positionwise-paths-big-ID-UN-AN-ST_9: 1.0042489165886128

@@ -92,37 +92,43 @@ class Positions:
 
 
 class VisualizationAlgorithm(ABC):
-    def __init__(self, file_path, fixed_positions_path=None):
+    def __init__(self, file_path, initial_positions_path=None, fix_positions=False):
         self.file_path = file_path
-        self.fixed_positions_path = fixed_positions_path
+        self.initial_positions_path = initial_positions_path
+        self.fix_positions = fix_positions
 
         self.reload()
 
     def reload(self):
-        if self.fixed_positions_path is not None:
-            self.fixed_positions_indexes, self.fixed_positions = self._read_fixed_positions(self.fixed_positions_path)
+        if self.initial_positions_path is not None:
+            self.initial_positions_indexes, self.initial_positions = self._read_initial_positions(self.initial_positions_path)
         else:
-            self.fixed_positions_indexes, self.fixed_positions = None, None
+            self.initial_positions_indexes, self.initial_positions = None, None
 
         self.distances, self.num_elections, self.names_to_indexes = parse_data(
             self.file_path,
-            self.fixed_positions_indexes
+            self.initial_positions_indexes
         )
         self.file_name = Path(self.file_path).stem
+
+        if self.initial_positions_indexes is not None and self.fix_positions:
+            self.fixed_positions_indexes = list(range(len(self.initial_positions_indexes)))
+        else:
+            self.fixed_positions_indexes = []
 
         self._reload()
 
     def _reload(self):
-        raise NotImplementedError
+        pass
 
-    def _read_fixed_positions(self, path):
+    def _read_initial_positions(self, path):
         df = pd.read_csv(path)
         return df['names'].tolist(), df[['x', 'y']].to_numpy()
 
-    def _apply_fixed_positions(self, positions):
-        if self.fixed_positions is not None:
-            for i in range(len(self.fixed_positions)):
-                positions[i] = self.fixed_positions[i]
+    def _apply_initial_positions(self, positions):
+        if self.initial_positions is not None:
+            for i in range(len(self.initial_positions)):
+                positions[i] = self.initial_positions[i]
 
     def _get_point_index(self, point_possible_names):
         for key, val in self.names_to_indexes.items():
@@ -130,17 +136,22 @@ class VisualizationAlgorithm(ABC):
                 return val
 
     def _initial_place_on_circle(self):
-        identity_index = self._get_point_index(['Sym', 'Identity'])
-        uniformity_index = self._get_point_index(['Asym', 'Uniformity'])
+        longest_distance = np.max(self.distances)
 
-        identity_uniformity_distance = self.distances[identity_index, uniformity_index]
+        should_split_in_two = self.num_elections > 10
 
-        positions = circle_points(
-            [identity_uniformity_distance / 2, identity_uniformity_distance * 2],
-            [self.num_elections // 2, self.num_elections - self.num_elections // 2]
-        )
+        if should_split_in_two:
+            positions = circle_points(
+                [longest_distance / 2, longest_distance * 2],
+                [self.num_elections // 2, self.num_elections - self.num_elections // 2]
+            )
+        else:
+            positions = circle_points(
+                [longest_distance],
+                [self.num_elections]
+            )
 
-        self._apply_fixed_positions(positions)
+        self._apply_initial_positions(positions)
 
         return positions
 

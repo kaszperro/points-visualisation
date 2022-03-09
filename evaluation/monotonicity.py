@@ -5,6 +5,7 @@ import pandas as pd
 
 from algorithms.common import VisualizationAlgorithm, parse_data
 from evaluation.utils import EvaluationAlgorithm
+from plots import plot_using_importance_matrix, plot_using_map
 
 
 class Monotonicity(EvaluationAlgorithm):
@@ -20,13 +21,9 @@ class Monotonicity(EvaluationAlgorithm):
 
     def preprocess(self, visualisation_algorithm: VisualizationAlgorithm):
         positions = visualisation_algorithm.get_positions()
-        positions.save(self.save_results_root, overridden_file_name=f'{self.file_name}.csv')
+        return positions.save(self.save_results_root, overridden_file_name=f'{self.file_name}.csv')
 
-        return self.save_results_root
-
-    def calculate_from_saved_path(self, root_path):
-        root_path = Path(root_path)
-        csv_path = list(root_path.glob('*.csv'))[0]
+    def calculate_from_saved_path(self, csv_path):
         df = pd.read_csv(csv_path)
 
         indexes_to_names = {
@@ -56,6 +53,8 @@ class Monotonicity(EvaluationAlgorithm):
         num_wrong = 0
         num_correct = 0
 
+        num_wrong_matrix = [0 for _ in range(n)]
+
         for i in range(n):
             print(f"{i}/{n}")
             for j in range(i + 1, n):
@@ -69,11 +68,61 @@ class Monotonicity(EvaluationAlgorithm):
                     if np.sign(original_distance_p12 - original_distance_p13) != np.sign(
                             calculated_distance_p12 - calculated_distance_p13):
                         num_wrong += 1
+                        num_wrong_matrix[i] += 1
+                        num_wrong_matrix[j] += 1
+                        num_wrong_matrix[k] += 1
                     else:
                         num_correct += 1
 
         print(num_correct, num_wrong, num_correct / (num_correct + num_wrong))
+
+        point_name_to_monotonicity = {
+            k: num_wrong_matrix[v] for k, v in self.names_to_indexes.items()
+        }
+
+        return point_name_to_monotonicity
 #16302100 1223496 0.9301880518071968
 
-Monotonicity('../data/positionwise/emd-positionwise-paths-big.csv').calculate_from_saved_path(
-    'saved/stability/results/emd-positionwise-paths-big-fixed-4-2runs')
+for i in range(1):
+    csv_path = Path(f'saved/stability/results/emd-positionwise-paths-big/emd-positionwise-paths-big_{i}.csv')
+    print(csv_path.stem)
+    point_name_to_m = Monotonicity('../data/positionwise/emd-positionwise-paths-big.csv').calculate_from_saved_path(
+        csv_path)
+
+    plot_using_importance_matrix(csv_path, point_name_to_m, show=False, save_path=Path(csv_path.parent, f'{csv_path.stem}_mono.png'))
+    plot_using_map(csv_path, '../map.csv', False)
+
+# RESULTS - all distances:
+# KAMADA:
+# emd-positionwise-paths-big-fixed-4-2runs/emd-positionwise-paths-big_0-fixed-4-2runs: 16302341 1223255 0.9302018031227012
+# emd-positionwise-paths-big-fixed-4-3runs/emd-positionwise-paths-big_0: 16092161 1433435 0.9182090583395851
+# emd-positionwise-paths-big-fixed-paths-2runs/emd-positionwise-paths-big_0: 16183977 1341619 0.9234480242497887
+# emd-positionwise-paths-big-fixed-paths-3runs/emd-positionwise-paths-big_0: 16183179 1342417 0.9234024908482428
+
+# SIM-ANNEAL:
+# emd-positionwise-paths-big_0-fixed-4/emd-positionwise-paths-big_0:  16545051 980545 0.9440506902019196
+
+# ONLY 4 POINTS:
+#KAMADA:
+# emd-positionwise-paths-big-ID-UN-AN-ST_0: 3 1 0.75
+# emd-positionwise-paths-big-ID-UN-AN-ST_1: 3 1 0.75
+# emd-positionwise-paths-big-ID-UN-AN-ST_2: 1 3 0.25
+# emd-positionwise-paths-big-ID-UN-AN-ST_3: 4 0 1.0
+# emd-positionwise-paths-big-ID-UN-AN-ST_4: 1 3 0.25
+# emd-positionwise-paths-big-ID-UN-AN-ST_5: 4 0 1.0
+# emd-positionwise-paths-big-ID-UN-AN-ST_6: 4 0 1.0
+# emd-positionwise-paths-big-ID-UN-AN-ST_7: 3 1 0.75
+# emd-positionwise-paths-big-ID-UN-AN-ST_8: 1 3 0.25
+# emd-positionwise-paths-big-ID-UN-AN-ST_9: 4 0 1.0
+
+
+#SIM-ANNEAL:
+# emd-positionwise-paths-big-ID-UN-AN-ST_0: 4 0 1.0
+# emd-positionwise-paths-big-ID-UN-AN-ST_1: 4 0 1.0
+# emd-positionwise-paths-big-ID-UN-AN-ST_2: 4 0 1.0
+# emd-positionwise-paths-big-ID-UN-AN-ST_3: 4 0 1.0
+# emd-positionwise-paths-big-ID-UN-AN-ST_4: 4 0 1.0
+# emd-positionwise-paths-big-ID-UN-AN-ST_5: 4 0 1.0
+# emd-positionwise-paths-big-ID-UN-AN-ST_6: 4 0 1.0
+# emd-positionwise-paths-big-ID-UN-AN-ST_7: 4 0 1.0
+# emd-positionwise-paths-big-ID-UN-AN-ST_9: 4 0 1.0

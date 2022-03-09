@@ -85,17 +85,21 @@ class SimRunner:
             self.temperature *= self.cooling_temp_factor
             self.radius *= self.cooling_radius_factor
 
-            kk_tot_e = kk_tot_energy(self.positions, _calc_k_with_special_value(self.distances, 1, [0, 1, 2, 3]), self.distances)
+            kk_tot_e = kk_tot_energy(self.positions, _calc_k_with_special_value(self.distances, 1, [0, 1, 2, 3]),
+                                     self.distances)
             print(f"KK energy: {kk_tot_e}")
-        kk_tot_e = kk_tot_energy(self.positions, _calc_k_with_special_value(self.distances, 1, [0, 1, 2, 3]), self.distances)
+        kk_tot_e = kk_tot_energy(self.positions, _calc_k_with_special_value(self.distances, 1, [0, 1, 2, 3]),
+                                 self.distances)
         print(f"Final energy: {energy}. Final KK energy: {kk_tot_e}")
         return self.positions
 
 
 class SimulatedAnnealing(VisualizationAlgorithm):
-    def __init__(self, file_path, temperature, num_stages=10, number_of_trials_for_temp=30, cooling_temp_factor=0.75,
+    def __init__(self, file_path, temperature, initial_positions_path=None, fix_positions=False, num_stages=10,
+                 number_of_trials_for_temp=30,
+                 cooling_temp_factor=0.75,
                  cooling_radius_factor=None):
-        super().__init__(file_path)
+        super().__init__(file_path, initial_positions_path=initial_positions_path, fix_positions=fix_positions)
         self.num_stages = num_stages
         self.number_of_trials_for_temp = number_of_trials_for_temp
         self.temperature = temperature
@@ -103,22 +107,14 @@ class SimulatedAnnealing(VisualizationAlgorithm):
         self.cooling_radius_factor = cooling_radius_factor
 
     def _sim_anneal(self, distances, num_elections):
-        identity_uniformity_distance = distances[0, 1]
-        positions = circle_points(
-            [identity_uniformity_distance / 2, identity_uniformity_distance * 2],
-            [num_elections // 2, num_elections - num_elections // 2]
-        )
-        positions[0] = [15.939003137638984, -3.4569181278827243]  # ID
-        positions[1] = [-15.939003137638982, 3.456918127882725]  # UN
-        positions[2] = [-3.0703888159475805, 13.038665587497677]  # AN
-        positions[3] = [3.070388815947584, -13.03866558749768]  # ST
+        positions = self._initial_place_on_circle()
 
         ann = SimRunner(
             positions, distances,
             self.temperature,
             num_stages=self.num_stages,
             number_of_trials_for_temp=self.number_of_trials_for_temp,
-            frozen_node_indexes=[0, 1, 2, 3],
+            frozen_node_indexes=self.fixed_positions_indexes,
             cooling_temp_factor=self.cooling_temp_factor,
             cooling_radius_factor=self.cooling_radius_factor
         )
@@ -130,7 +126,3 @@ class SimulatedAnnealing(VisualizationAlgorithm):
 
     def _get_save_file_name(self):
         return Path('simulated_annealing', f'{self.file_name}.csv')
-
-    @staticmethod
-    def _get_special_groups_names():
-        return ['ID', 'UN', 'AN', 'ST']
